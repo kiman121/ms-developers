@@ -31,7 +31,7 @@ def loginUser(request):
         else:
             messages.error(request, 'Username or password in incorrect')
 
-    return render(request, 'users/login_register.html')
+    return render(request, 'users/login-register.html')
 
 def logoutUser(request):
     logout(request)
@@ -62,4 +62,23 @@ def registerUser(request):
         'form': form,
     }
 
-    return render(request, 'users/login_register.html', context)
+    return render(request, 'users/login-register.html', context)
+
+
+@login_required(login_url='login')
+def editAccount(request):
+    profile = request.user.profile
+    form = ProfileForm(instance=profile)
+
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+
+            return redirect('account')
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'users/profile-form.html', context)
+
