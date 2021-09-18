@@ -5,8 +5,21 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from .models import Profile
 from .forms import CustomUserCreationForm, ProfileForm, SkillForm
-# from .utils import searchProfiles, paginateProfiles
+from .utils import searchProfiles, paginateProfiles
 # Create your views here.
+
+
+def profiles(request):
+    profiles, search_query = searchProfiles(request)
+
+    custom_range, profiles = paginateProfiles(request, profiles, 3)
+
+    context = {
+        'profiles': profiles,
+        'search_query': search_query,
+        'custom_range': custom_range
+    }
+    return render(request, 'users/profiles.html', context)
 
 
 def loginUser(request):
@@ -33,10 +46,12 @@ def loginUser(request):
 
     return render(request, 'users/login-register.html')
 
+
 def logoutUser(request):
     logout(request)
     messages.info(request, 'User was logged out!')
     return redirect('login')
+
 
 def registerUser(request):
     page = 'register'
@@ -64,6 +79,20 @@ def registerUser(request):
 
     return render(request, 'users/login-register.html', context)
 
+@login_required(login_url='login')
+def userAccount(request):
+    profile = request.user.profile
+    skills = profile.skill_set.all()
+    projects = profile.project_set.all()
+
+    context = {
+        'profile': profile,
+        'skills': skills,
+        'projects': projects
+    }
+
+    return render(request, 'users/user-account.html', context)
+
 
 @login_required(login_url='login')
 def editAccount(request):
@@ -81,18 +110,4 @@ def editAccount(request):
         'form': form,
     }
     return render(request, 'users/profile-form.html', context)
-
-
-def profiles(request):
-    profiles, search_query = searchProfiles(request)
-
-    custom_range, profiles = paginateProfiles(request, profiles, 3)
-
-    context = {
-        'profiles': profiles,
-        'search_query': search_query,
-        'custom_range': custom_range
-    }
-    return render(request, 'users/profiles.html', context)
-
 
